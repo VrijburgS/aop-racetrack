@@ -7,6 +7,7 @@ Olivier
 Arjen
 Ismael
 Sjoerd
+Lars
 
 ## Tasks
 Visualisatie - Sjoerd
