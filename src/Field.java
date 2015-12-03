@@ -13,11 +13,18 @@ import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.util.Logger;
 
+import java.util.ArrayList;
+
 public class Field extends Agent {
     //0 is free, 1 is occupied, 2 is off track
     private int[] map =  {2, 1, 0, 2,
             2, 1, 0, 2,
             2, 1, 2, 1};
+
+    //oneday maybe we will use ondisk database, but for now:
+    private ArrayList<AID> registeredAIDS = new ArrayList<AID>();
+    //will hold positions etc
+    private ArrayList<Competitor> competitors = new ArrayList<Competitor>();
 
     public final int mapHeight= 3;
     public final int mapWidth = 4;
@@ -35,52 +42,66 @@ public class Field extends Agent {
             if(msg != null){
                 myLogger.log(Logger.INFO, getName() + " got message from " + msg.getSender());
                 ACLMessage reply = msg.createReply();
-                if(msg.getPerformative()== ACLMessage.QUERY_IF){
-                    String content = msg.getContent();
-                    if (content == null ){
-                        reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
-                    }
-                    else {
-                        if (content.contains(",")) {
-                            //TODO: check if msg content is valid before stripping coordinates
-                            reply.setPerformative(ACLMessage.INFORM);
-                            int commaPos = content.indexOf(',');
-                            String xStr = content.substring(0, commaPos);
-                            String yStr = content.substring(commaPos+1, content.length());
-                            if (isInteger(xStr) && isInteger(xStr))
-                            {
-                                int x = Integer.parseInt( xStr );
-                                int y = Integer.parseInt(yStr);
-                                int coInt = getCoordinate(x, y);
-                                switch(coInt){
-                                    case (0):
-                                        reply.setContent("free");
-                                        break;
-                                    case(1):
-                                        reply.setContent("occupied");
-                                        break;
-                                    case(2):
-                                        reply.setContent("off track");
-                                        break;
-                                    case(-1):
-                                        reply.setContent("out of bounds");
-                                        break;
-                                    default:
-                                        reply.setContent("wtf");
-                                        break;
+                if (msg.getPerformative()== ACLMessage.REQUEST) {
+                    if (msg.getOntology().equals("space")) {
+                        String content = msg.getContent();
+                        if (content == null) {
+                            reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
+                        } else {
+                            if (!registeredAIDS.contains(msg.getSender())) {
+                                reply.setContent("you are not registered");
+                                reply.setOntology("space");
+                                reply.setPerformative(ACLMessage.FAILURE);
+                            } else if (content.contains(",")) {
+                                //TODO: check if msg content is valid before stripping coordinates
+                                reply.setPerformative(ACLMessage.INFORM);
+                                int commaPos = content.indexOf(',');
+                                String xStr = content.substring(0, commaPos);
+                                String yStr = content.substring(commaPos + 1, content.length());
+                                if (isInteger(xStr) && isInteger(xStr)) {
+                                    int x = Integer.parseInt(xStr);
+                                    int y = Integer.parseInt(yStr);
+                                    int coInt = getCoordinate(x, y);
+                                    switch (coInt) {
+                                        case (0):
+                                            reply.setContent("free");
+                                            break;
+                                        case (1):
+                                            reply.setContent("occupied");
+                                            break;
+                                        case (2):
+                                            reply.setContent("off track");
+                                            break;
+                                        case (-1):
+                                            reply.setContent("out of bounds");
+                                            break;
+                                        default:
+                                            reply.setContent("wtf");
+                                            break;
+                                    }
+
                                 }
 
+                            } else {
+                                reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
                             }
 
                         }
-                        else
-                        {
-                            reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
-                        }
-
-                        //reply.setOntology("free");
+                        send(reply);
                     }
-                    send(reply);
+                    if (msg.getOntology().equals("register")) {
+                        reply.setOntology("register");
+                        if (registeredAIDS.contains(msg.getSender())) {
+                            reply.setPerformative(ACLMessage.FAILURE);
+                            reply.setContent(msg.getSender() + " is already registered, need unique ID");
+                        } else {
+                            reply.setPerformative(ACLMessage.CONFIRM);
+                            registeredAIDS.add(msg.getSender());
+                            Competitor c = new Competitor(msg.getSender());
+                            competitors.add(c);
+                        }
+                        send(reply);
+                    }
                 }
                 else {
                     block();
