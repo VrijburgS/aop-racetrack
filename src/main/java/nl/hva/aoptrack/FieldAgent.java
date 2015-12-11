@@ -11,9 +11,9 @@ import jade.util.Logger;
 
 import java.util.ArrayList;
 
-public class Field extends Agent {
+public class FieldAgent extends Agent {
     //0 is free, 1 is occupied, 2 is off track
-    private int[] map =  {2, 1, 0, 2,
+    private int[] map = {2, 1, 0, 2,
             2, 1, 0, 2,
             2, 1, 2, 1};
 
@@ -22,7 +22,7 @@ public class Field extends Agent {
     //will hold positions etc
     private ArrayList<Competitor> competitors = new ArrayList<Competitor>();
 
-    public final int mapHeight= 3;
+    public final int mapHeight = 3;
     public final int mapWidth = 4;
 
     private Logger myLogger = Logger.getMyLogger(getClass().getName());
@@ -34,11 +34,11 @@ public class Field extends Agent {
         }
 
         public void action() {
-            ACLMessage  msg = myAgent.receive();
-            if(msg != null){
+            ACLMessage msg = myAgent.receive();
+            if (msg != null) {
                 myLogger.log(Logger.INFO, getName() + " got message from " + msg.getSender());
                 ACLMessage reply = msg.createReply();
-                if (msg.getPerformative()== ACLMessage.REQUEST) {
+                if (msg.getPerformative() == ACLMessage.REQUEST) {
                     if (msg.getOntology().equals("space")) {
                         String content = msg.getContent();
                         if (content == null) {
@@ -98,8 +98,7 @@ public class Field extends Agent {
                         }
                         send(reply);
                     }
-                }
-                else {
+                } else {
                     block();
                 }
             }
@@ -117,23 +116,24 @@ public class Field extends Agent {
         dfd.setName(getAID());
         dfd.addServices(sd);
         try {
-            DFService.register(this,dfd);
-            WaitPingAndReplyBehaviour PingBehaviour = new  WaitPingAndReplyBehaviour(this);
+            DFService.register(this, dfd);
+            WaitPingAndReplyBehaviour PingBehaviour = new WaitPingAndReplyBehaviour(this);
             addBehaviour(PingBehaviour);
         } catch (FIPAException e) {
-            myLogger.log(Logger.SEVERE, "Agent "+getLocalName()+" - Cannot register with DF", e);
+            myLogger.log(Logger.SEVERE, "Agent " + getLocalName() + " - Cannot register with DF", e);
             doDelete();
         }
     }
+
     //returns -1 if requested coordinate is out of bounds
-    public int getCoordinate(int x, int y)
-    {
-        if (x > this.mapWidth-1 || y > this.mapHeight-1 || x < 0 || y < 0)
+    public int getCoordinate(int x, int y) {
+        if (x > this.mapWidth - 1 || y > this.mapHeight - 1 || x < 0 || y < 0)
             return -1;
         return map[y * this.mapWidth + x];
     }
+
     //thank you Jonas Klemming
-    private  static boolean isInteger(String str) {
+    private static boolean isInteger(String str) {
         if (str == null) {
             return false;
         }
