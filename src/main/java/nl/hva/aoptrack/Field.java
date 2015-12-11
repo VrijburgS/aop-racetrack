@@ -1,8 +1,4 @@
-/**
- * Created by guro saria on 26-11-2015.
- */
-
-
+package nl.hva.aoptrack;
 
 import jade.core.*;
 import jade.core.behaviours.*;

@@ -1,3 +1,5 @@
+package nl.hva.aoptrack;
+
 import jade.core.AID;
 
 /**
